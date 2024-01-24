@@ -1,7 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import AuthContextProvider from "../context/AuthContext";
+import {useContext} from "react";
+
 
 function Home() {
+
   return (
     <>
       <h1>Homepagina</h1>
