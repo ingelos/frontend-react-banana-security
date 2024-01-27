@@ -1,18 +1,42 @@
-import React, {useContext, useState} from 'react';
-import { Link } from 'react-router-dom';
+import React, {useContext, useEffect, useState} from 'react';
+import {Link, useNavigate} from 'react-router-dom';
 import {AuthContext} from "../context/AuthContext";
 import {useForm} from "react-hook-form";
+import axios from "axios";
 
 function SignIn() {
 
     const { register, handleSubmit, formState: { errors} } = useForm();
     const { login } = useContext(AuthContext);
     const [error, setError] = useState(false);
+    const controller = new AbortController();
+    const navigate = useNavigate();
 
-    function handleFormSubmit(data) {
-        console.log(data)
-        login(data.email);
+
+    useEffect(() => {
+        return function cleanup() {
+            controller.abort();
+        }
+    })
+
+
+    async function handleFormSubmit(data) {
         setError(false);
+
+        try {
+            const response = await axios.post('http://localhost:3000/login', {
+                email: data.email,
+                password: data.password,
+                signal: controller.signal,
+            });
+            console.log(response)
+            login(response.data.accessToken);
+
+        } catch(e) {
+            console.error(e);
+            setError(true);
+        }
+        navigate('/profile');
     }
 
   return (

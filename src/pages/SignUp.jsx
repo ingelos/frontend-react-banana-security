@@ -1,15 +1,39 @@
-import React, {useState} from 'react';
-import { Link } from 'react-router-dom';
+import React, {useEffect, useState} from 'react';
+import {Link, useNavigate} from 'react-router-dom';
 import {useForm} from "react-hook-form";
+import axios from "axios";
 
 function SignUp() {
 
     const { register, handleSubmit, formState: {errors} }= useForm();
     const [error, setError] = useState(false);
+    const navigate = useNavigate();
 
-    function handleFormSubmit(data) {
-        console.log(data)
+    const controller = new AbortController();
+
+    useEffect(() => {
+        return function cleanup() {
+            controller.abort();
+        }
+    })
+
+    async function handleFormSubmit(data) {
         setError(false);
+
+        try {
+            const response = await axios.post('http://localhost:3000/register', {
+                email: data.email,
+                password: data.password,
+                username: data.username,
+                signal: controller.signal,
+                });
+            console.log(response);
+            navigate('/signin')
+
+        } catch(e) {
+            console.error(e);
+            setError(true)
+        }
     }
 
 
@@ -41,14 +65,11 @@ function SignUp() {
               <input
                   type='text'
                   id='username-field'
-                  {...register('password', {
-                      required: 'Wachtwoord is verplicht',
-                      minLength: {
-                          value: 8,
-                          message: 'A password requires a minimum of 8 characters'
-                      }
+                  {...register('username', {
+                      required: 'Gebruikersnaam is verplicht',
                   })}
               />
+              {errors.username && <p>{errors.username.message}</p>}
           </label>
           <label htmlFor="password-field">
               Wachtwoord:
@@ -58,12 +79,14 @@ function SignUp() {
                   {...register('password', {
                       required: 'Wachtwoord is verplicht',
                       minLength: {
-                          value: 8,
-                          message: 'A password requires a minimum of 8 characters'
+                          value: 6,
+                          message: 'Een wachtwoord heeft minimaal 6 karakters'
                       }
                   })}
               />
+              {errors.password && <p>{errors.password.message}</p>}
           </label>
+
           <button type='submit'>Maak account aan</button>
           {error && <p className='error-message'>Er is iets misgegaan. Probeer het opnieuw</p>}
       </form>
